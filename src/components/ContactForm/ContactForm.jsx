@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { nanoid } from 'nanoid';
+import { setFilter, addContact } from '../../store/contactsSlice';
+import { handleFormSubmit } from '../../store/reduxFunctions';
 import { Container, FormInput, SubmitButton } from './ContactForm.styled';
 
-export default function ContactForm({ contacts, onSubmit }) {
+export default function ContactForm() {
+  const dispatch = useDispatch();
+  const contacts = useSelector((state) => state.contacts.contacts);
+
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
 
@@ -17,16 +23,18 @@ export default function ContactForm({ contacts, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const handleFormSubmitAction = handleFormSubmit(
+      dispatch,
+      addContact,
+      contacts,
+      nanoid
+    );
 
-    if (contacts.some((contact) => contact.text.toLowerCase() === name.toLowerCase())) {
-      alert(`${name} is already in contacts.`);
-      setName('');
-      setNumber('');
-    } else {
-      onSubmit(name, number);
-      setName('');
-      setNumber('');
-    }
+    handleFormSubmitAction({ name, number });
+    dispatch(setFilter(''));
+
+    setName('');
+    setNumber('');
   };
 
   return (
@@ -39,7 +47,6 @@ export default function ContactForm({ contacts, onSubmit }) {
             type="text"
             placeholder="Enter name"
             name="name"
-            id={nanoid()}
             value={name}
             onChange={handleChange}
             required
@@ -53,7 +60,6 @@ export default function ContactForm({ contacts, onSubmit }) {
             type="tel"
             placeholder="Enter number"
             name="number"
-            id={nanoid()}
             value={number}
             onChange={handleChange}
             required
